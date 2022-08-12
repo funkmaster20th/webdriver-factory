@@ -5,15 +5,14 @@ val scala2_13 = "2.13.7"
 
 val compileDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-  "org.seleniumhq.selenium"     % "selenium-java" % "4.2.2",
+  "org.seleniumhq.selenium"     % "selenium-java" % "4.3.0",
   "org.slf4j"                   % "slf4j-simple"  % "1.7.36"
 )
 
 val testDependencies = Seq(
-  "com.vladsch.flexmark" % "flexmark-all" % "0.36.8"  % Test,
+  "com.vladsch.flexmark" % "flexmark-all" % "0.62.2"  % Test,
   "org.mockito"          % "mockito-all"  % "1.10.19" % Test,
-  "org.pegdown"          % "pegdown"      % "1.6.0"   % Test,
-  "org.scalatest"       %% "scalatest"    % "3.2.9"   % Test
+  "org.scalatest"       %% "scalatest"    % "3.2.13"  % Test
 )
 
 lazy val library = Project(libraryName, file("."))

@@ -110,7 +110,6 @@ class BrowserFactory extends LazyLogging {
         defaultOptions.addArguments("--use-gl=desktop")
 
         defaultOptions.setExperimentalOption("excludeSwitches", List("enable-automation").asJava)
-        defaultOptions.setExperimentalOption("useAutomationExtension", false)
         if (disableJavaScript) {
           defaultOptions.setExperimentalOption(
             "prefs",
