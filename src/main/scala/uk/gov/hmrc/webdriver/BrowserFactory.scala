@@ -18,6 +18,7 @@ package uk.gov.hmrc.webdriver
 
 import com.typesafe.scalalogging.LazyLogging
 import org.openqa.selenium.chrome.{ChromeDriver, ChromeOptions}
+import org.openqa.selenium.edge.EdgeOptions
 import org.openqa.selenium.firefox.{FirefoxDriver, FirefoxOptions}
 import org.openqa.selenium.remote.{CapabilityType, DesiredCapabilities, LocalFileDetector, RemoteWebDriver}
 import org.openqa.selenium.{MutableCapabilities, Proxy, WebDriver}
@@ -51,6 +52,7 @@ class BrowserFactory extends LazyLogging {
       case Some("firefox")         => firefoxInstance(firefoxOptions(customOptions))
       case Some("remote-chrome")   => remoteWebdriverInstance(chromeOptions(customOptions))
       case Some("remote-firefox")  => remoteWebdriverInstance(firefoxOptions(customOptions))
+      case Some("remote-edge")     => remoteWebdriverInstance(edgeOptions(customOptions))
       case Some("browserstack")    => browserStackInstance()
       case Some("headless-chrome") => headlessChromeInstance(chromeOptions(customOptions))
       case Some(browser)           =>
@@ -140,6 +142,24 @@ class BrowserFactory extends LazyLogging {
           defaultOptions.addPreference("javascript.enabled", false)
           logger.info(s"'javascript.enabled' system property is set to:$disableJavaScript. Disabling JavaScript.")
         }
+        defaultOptions
+    }
+  }
+
+  private[webdriver] def edgeOptions(customOptions: Option[MutableCapabilities]): EdgeOptions = {
+    if (accessibilityTest)
+      throw AccessibilityAuditConfigurationException(
+        s"Failed to configure Edge browser to run accessibility-assessment tests." +
+          s" The accessibility-assessment can only be configured to run with Chrome."
+      )
+    customOptions match {
+      case Some(options) =>
+        val userOptions = options.asInstanceOf[EdgeOptions]
+        zapConfiguration(userOptions)
+        userOptions
+      case None          =>
+        val defaultOptions = new EdgeOptions()
+        zapConfiguration(defaultOptions)
         defaultOptions
     }
   }
