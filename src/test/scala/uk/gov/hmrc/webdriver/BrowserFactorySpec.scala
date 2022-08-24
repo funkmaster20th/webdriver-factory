@@ -17,6 +17,7 @@
 package uk.gov.hmrc.webdriver
 
 import org.openqa.selenium.chrome.ChromeOptions
+import org.openqa.selenium.edge.EdgeOptions
 import org.openqa.selenium.firefox.FirefoxOptions
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
@@ -249,6 +250,74 @@ class BrowserFactorySpec extends AnyWordSpec with Matchers with BeforeAndAfterEa
       }
       assert(
         thrown.getMessage === browserFactory.accessibilityInHeadlessChromeNotSupported
+      )
+    }
+    "return edgeOptions" in new Setup {
+      val options: EdgeOptions = browserFactory.edgeOptions(None)
+      options.asMap().get("browserName") shouldBe "MicrosoftEdge"
+    }
+
+    "return edgeOptions with zap proxy configuration when zap.proxy is true " in new Setup {
+      System.setProperty("zap.proxy", "true")
+      val options: EdgeOptions = browserFactory.edgeOptions(None)
+      options.asMap().get("proxy").toString shouldBe "Proxy(manual, http=localhost:11000, ssl=localhost:11000)"
+    }
+
+    "return edgeOptions with zap proxy configuration when ZAP_HOST environment variable is set" in new Setup {
+      override val browserFactory: BrowserFactory = new BrowserFactory() {
+        override protected val zapHostInEnv: Option[String] = Some("localhost:11000")
+      }
+      //This check ensures zap configuration is not setup because of zap.proxy system property.
+      sys.props.get("zap.proxy").isDefined shouldBe false
+      val options: EdgeOptions                    = browserFactory.edgeOptions(None)
+      options.asMap().get("proxy").toString shouldBe "Proxy(manual, http=localhost:11000, ssl=localhost:11000)"
+    }
+
+    "return userBrowserOptions for edge" in new Setup {
+      val customOptions = new EdgeOptions()
+      customOptions.setHeadless(true)
+
+      val options: EdgeOptions = browserFactory.edgeOptions(Some(customOptions))
+      options.asMap().get("ms:edgeOptions").toString shouldBe "{args=[--headless], extensions=[]}"
+      options.asMap().getOrDefault("proxy", None)    shouldBe None
+    }
+
+    "return userBrowserOptions with zap proxy for edge" in new Setup {
+      System.setProperty("zap.proxy", "true")
+
+      val customOptions = new EdgeOptions()
+      customOptions.setHeadless(true)
+
+      val options: EdgeOptions = browserFactory.edgeOptions(Some(customOptions))
+      options.asMap().get("browserName")             shouldBe "MicrosoftEdge"
+      options.asMap().get("ms:edgeOptions").toString shouldBe "{args=[--headless], extensions=[]}"
+      options.asMap().get("proxy").toString          shouldBe "Proxy(manual, http=localhost:11000, ssl=localhost:11000)"
+    }
+
+    "return userBrowserOptions with zap proxy for edge when ZAP_HOST environment variable is set" in new Setup {
+      override val browserFactory: BrowserFactory = new BrowserFactory() {
+        override protected val zapHostInEnv: Option[String] = Some("localhost:11000")
+      }
+
+      val customOptions = new EdgeOptions()
+      customOptions.setHeadless(true)
+
+      //This check ensures zap configuration is not setup because of zap.proxy system property.
+      sys.props.get("zap.proxy").isDefined shouldBe false
+      val options: EdgeOptions = browserFactory.edgeOptions(Some(customOptions))
+      options.asMap().get("browserName")             shouldBe "MicrosoftEdge"
+      options.asMap().get("ms:edgeOptions").toString shouldBe "{args=[--headless], extensions=[]}"
+      options.asMap().get("proxy").toString          shouldBe "Proxy(manual, http=localhost:11000, ssl=localhost:11000)"
+    }
+
+    "return error when using edgeOptions and when configuring system property accessibility.test true" in new Setup {
+      val thrown: Exception = intercept[Exception] {
+        System.setProperty("accessibility.test", "true")
+        browserFactory.edgeOptions(None)
+      }
+      assert(
+        thrown.getMessage === s"Failed to configure Edge browser to run accessibility-assessment tests." +
+          s" The accessibility-assessment can only be configured to run with Chrome."
       )
     }
   }
