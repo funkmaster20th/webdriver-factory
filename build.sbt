@@ -5,7 +5,7 @@ val scala2_13 = "2.13.7"
 
 val compileDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
-  "org.seleniumhq.selenium"     % "selenium-java" % "4.3.0",
+  "org.seleniumhq.selenium"     % "selenium-java" % "4.2.2",
   "org.slf4j"                   % "slf4j-simple"  % "1.7.36"
 )
 
