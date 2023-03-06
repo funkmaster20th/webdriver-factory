@@ -1,7 +1,7 @@
 val libraryName = "webdriver-factory"
 
 val scala2_12 = "2.12.12"
-val scala2_13 = "2.13.7"
+val scala2_13 = "2.13.8"
 
 val compileDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5",
