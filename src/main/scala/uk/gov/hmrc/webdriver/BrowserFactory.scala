@@ -92,75 +92,85 @@ class BrowserFactory extends LazyLogging {
     driver
   }
 
-  private[webdriver] def chromeOptions(customOptions: Option[MutableCapabilities]): ChromeOptions =
-    customOptions match {
-      case Some(options) =>
-        val userOptions = options.asInstanceOf[ChromeOptions]
-        if (accessibilityTest)
-          addPageCaptureChromeExtension(userOptions)
-        zapConfiguration(userOptions)
-        userOptions
-      case None          =>
-        val defaultOptions = new ChromeOptions()
-        zapConfiguration(defaultOptions)
-        if (accessibilityTest)
-          addPageCaptureChromeExtension(defaultOptions)
-        defaultOptions.addArguments("start-maximized")
-        // `--use-cmd-decoder` and `--use-gl` are added as a workaround for slow test duration in chrome 85 and higher (PBD-822)
-        // Can be reverted once the issue is fixed in the future versions of Chrome.
-        defaultOptions.addArguments("--use-cmd-decoder=validating")
-        defaultOptions.addArguments("--use-gl=desktop")
+  private[webdriver] def chromeOptions(capabilities: Option[MutableCapabilities]): ChromeOptions = {
+    var options: ChromeOptions = new ChromeOptions
 
-        defaultOptions.setExperimentalOption("excludeSwitches", List("enable-automation").asJava)
-        if (disableJavaScript) {
-          defaultOptions.setExperimentalOption(
-            "prefs",
-            Map[String, Int]("profile.managed_default_content_settings.javascript" -> 2).asJava
-          )
-          logger.info(s"'javascript.enabled' system property is set to:$disableJavaScript. Disabling JavaScript.")
-        }
-        defaultOptions
+    options.addArguments("start-maximized")
+    options.setExperimentalOption("excludeSwitches", List("enable-automation").asJava)
+
+    if (disableJavaScript) {
+      options.setExperimentalOption(
+        "prefs",
+        Map[String, Int]("profile.managed_default_content_settings.javascript" -> 2).asJava
+      )
+      logger.info(s"'disable.javascript' system property is set to: $disableJavaScript. Disabling JavaScript.")
     }
 
-  private[webdriver] def firefoxOptions(customOptions: Option[MutableCapabilities]): FirefoxOptions = {
+    zapConfiguration(options)
+
+    capabilities match {
+      case Some(value) =>
+        options = options.merge(value)
+        if (accessibilityTest)
+          addPageCaptureChromeExtension(options)
+        options
+      case None        =>
+        if (accessibilityTest)
+          addPageCaptureChromeExtension(options)
+        options
+    }
+  }
+
+  private[webdriver] def firefoxOptions(capabilities: Option[MutableCapabilities]): FirefoxOptions = {
+    var options: FirefoxOptions = new FirefoxOptions
+
     if (accessibilityTest)
       throw AccessibilityAuditConfigurationException(
         s"Failed to configure Firefox browser to run accessibility-assessment tests." +
           s" The accessibility-assessment can only be configured to run with Chrome."
       )
-    customOptions match {
-      case Some(options) =>
-        val userOptions = options.asInstanceOf[FirefoxOptions]
-        zapConfiguration(userOptions)
-        userOptions
-      case None          =>
-        val defaultOptions = new FirefoxOptions()
-        defaultOptions.setAcceptInsecureCerts(true)
-        defaultOptions.addPreference(enableProxyForLocalhostRequestsInFirefox, true)
-        zapConfiguration(defaultOptions)
-        if (disableJavaScript) {
-          defaultOptions.addPreference("javascript.enabled", false)
-          logger.info(s"'javascript.enabled' system property is set to:$disableJavaScript. Disabling JavaScript.")
-        }
-        defaultOptions
+
+    if (disableJavaScript) {
+      options.addPreference("javascript.enabled", false)
+      logger.info(s"'javascript.enabled' system property is set to:$disableJavaScript. Disabling JavaScript.")
+    }
+
+    zapConfiguration(options)
+
+    capabilities match {
+      case Some(value) =>
+        options = options.merge(value)
+        options
+      case None        =>
+        options
     }
   }
 
-  private[webdriver] def edgeOptions(customOptions: Option[MutableCapabilities]): EdgeOptions = {
+  private[webdriver] def edgeOptions(capabilities: Option[MutableCapabilities]): EdgeOptions = {
+    var options: EdgeOptions = new EdgeOptions
+
     if (accessibilityTest)
       throw AccessibilityAuditConfigurationException(
         s"Failed to configure Edge browser to run accessibility-assessment tests." +
           s" The accessibility-assessment can only be configured to run with Chrome."
       )
-    customOptions match {
-      case Some(options) =>
-        val userOptions = options.asInstanceOf[EdgeOptions]
-        zapConfiguration(userOptions)
-        userOptions
-      case None          =>
-        val defaultOptions = new EdgeOptions()
-        zapConfiguration(defaultOptions)
-        defaultOptions
+
+    if (disableJavaScript) {
+      options.setExperimentalOption(
+        "prefs",
+        Map[String, Int]("profile.managed_default_content_settings.javascript" -> 2).asJava
+      )
+      logger.info(s"'disable.javascript' system property is set to: $disableJavaScript. Disabling JavaScript.")
+    }
+
+    zapConfiguration(options)
+
+    capabilities match {
+      case Some(value) =>
+        options = options.merge(value)
+        options
+      case None        =>
+        options
     }
   }
 
