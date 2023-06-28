@@ -7,7 +7,7 @@ val compileDependencies = Seq(
   "com.typesafe.scala-logging" %% "scala-logging"            % "3.9.5",
   "org.seleniumhq.selenium"     % "selenium-java"            % "4.9.1",
   "org.seleniumhq.selenium"     % "selenium-http-jdk-client" % "4.9.1",
-  "org.slf4j"                   % "slf4j-simple"             % "2.0.7"
+  "org.slf4j"                   % "slf4j-simple"             % "1.7.6"
 )
 
 val testDependencies = Seq(
