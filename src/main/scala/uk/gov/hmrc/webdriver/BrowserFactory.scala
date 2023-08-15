@@ -245,17 +245,61 @@ class BrowserFactory extends LazyLogging {
       sys.props.getOrElse("browserstack.key", throw new Exception("browserstack.key is required. Enter a valid key"))
     val browserStackHubUrl = s"http://$username:$automateKey@hub.browserstack.com/wd/hub"
 
-    val desiredCaps = new DesiredCapabilities()
-    desiredCaps.setCapability("browserstack.debug", "true")
-    desiredCaps.setCapability("browserstack.local", "true")
+val desiredCaps = new DesiredCapabilities()
+    desiredCaps.setCapability("browserName", sys.props.get("browserstack.browser").getOrElse("Chrome"))
+   // desiredCaps.setCapability("browserVersion", sys.props.get("browserstack.browser_version").getOrElse("latest"))
 
-    val properties: Map[String, String] =
-      sys.props.toMap[String, String].filter(key => key._1.startsWith("browserstack") && key._2 != "")
+//    val properties: Map[String, String] =
+//      sys.props.toMap[String, String].filter(key => key._1.startsWith("browserstack") && key._2 != "")
+//
+//    properties.map(x => (x._1.replace("browserstack.", ""), x._2.replace("_", " ")))
+//    properties
+//      .foreach(x => desiredCaps.setCapability(x._1.replace("browserstack.", ""), x._2.replace("_", " ")))
 
-    properties.map(x => (x._1.replace("browserstack.", ""), x._2.replace("_", " ")))
-    properties
-      .foreach(x => desiredCaps.setCapability(x._1.replace("browserstack.", ""), x._2.replace("_", " ")))
+//    val browserstackOptions: Tuple7[(String,String), (String,String), (String,String), (String,String), (String,String), (String,String), (String,String)] =  Tuple7(
+//    ("os", sys.props.get("browserstack.os").getOrElse("Windows")),
+//    ("osVersion", sys.props.get("browserstack.os_version").getOrElse("10")),
+//    ("browserVersion",  sys.props.get("browserstack.browser_version").getOrElse("latest")),
+//    ("debug", sys.props.get("browserstack.debug").getOrElse("true")),
+//    ("local", sys.props.get("browserstack.environment").getOrElse("true")),
+//    ("projectName", sys.props.get("browserstack.project").getOrElse("true")),
+//    ("buildName", sys.props.get("browserstack.build").getOrElse("true"))
+//    )
 
+//        val browserstackOptions: Tuple7[(String,Object), (String,Object), (String,Object), (String,Object), (String,Object), (String,Object), (String,Object)] =  Tuple7(
+//        ("os" -> sys.props.get("browserstack.os").getOrElse("Windows")),
+//        ("osVersion" -> sys.props.get("browserstack.os_version").getOrElse("10")),
+//        ("browserVersion" ->  sys.props.get("browserstack.browser_version").getOrElse("latest")),
+//        ("debug" -> sys.props.get("browserstack.debug").getOrElse("true")),
+//        ("local" -> sys.props.get("browserstack.environment").getOrElse("true")),
+//        ("projectName" -> sys.props.get("browserstack.project").getOrElse("true")),
+//        ("buildName" -> sys.props.get("browserstack.build").getOrElse("true"))
+//        )
+
+    def t[V](key: String, value: Option[V]): Option[(String, Any)] = value.map(v => key -> v.toString)
+
+    val bs = List(
+              t("os" , Some(sys.props.get("browserstack.os").getOrElse("Windows"))),
+              t("osVersion" , Some(sys.props.get("browserstack.os_version").getOrElse("10"))),
+              t("browserVersion" ,  Some(sys.props.get("browserstack.browser_version").getOrElse("latest"))),
+              t("debug" , Some(sys.props.get("browserstack.debug").getOrElse("true"))),
+              t("local" , Some(sys.props.get("browserstack.environment").getOrElse("true"))),
+              t("projectName" , Some(sys.props.get("browserstack.project").getOrElse("BaseProject"))),
+              t("buildName" , Some(sys.props.get("browserstack.build").getOrElse("build1")))
+    ).flatten.toMap.asJava
+
+//    var browserstackOptions: mutable.HashMap[String,Object] =
+//      mutable.HashMap(
+//      ("os" -> sys.props.get("browserstack.os").getOrElse("Windows")) ,
+//      ("osVersion"->  sys.props.get("browserstack.os_version").getOrElse("10")) ,
+//      ("browserVersion"->   sys.props.get("browserstack.browser_version").getOrElse("latest")),
+//      ("debug"-> sys.props.get("browserstack.debug").getOrElse("true")),
+//      ("local"->  sys.props.get("browserstack.environment").getOrElse("true")),
+//      ("projectName"->  sys.props.get("browserstack.project").getOrElse("Base")),
+//      ("buildName"->  sys.props.get("browserstack.build").getOrElse("1.0"))
+//    )
+
+    desiredCaps.setCapability("bstack:options", bs)
     new RemoteWebDriver(new URL(browserStackHubUrl), desiredCaps)
   }
 }
